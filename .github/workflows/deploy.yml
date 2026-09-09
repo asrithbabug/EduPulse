@@ -1,0 +1,27 @@
+name: Deploy Backend
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Deploy to Backend Instance (via jump host)
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.BACKEND_PRIVATE_IP }}
+          username: ubuntu
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          proxy_host: ${{ secrets.SCHOOL_ADMIN_IP }}
+          proxy_username: ubuntu
+          proxy_key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /var/www/edupulse-backend
+            git pull origin main
+            npm install --production
+            pm2 restart edupulse-api
+            echo "Backend deployed successfully"
